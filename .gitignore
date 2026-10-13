@@ -1,4 +1,5 @@
 dist/
+.build-cache/
 work/
 outputs/
 *.aux

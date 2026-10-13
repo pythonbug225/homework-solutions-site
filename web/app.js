@@ -17,7 +17,7 @@ function draw() {
   categoryNav.replaceChildren();
   let shown = 0;
   for (const category of data) {
-    const courses = category.courses.map(course => ({ ...course, resources: course.resources.filter(resource => [category.name, course.name, resource.name, resource.summary || ''].join(' ').toLocaleLowerCase().includes(q)) })).filter(course => course.resources.length);
+    const courses = category.courses.map(course => ({ ...course, resources: course.resources.filter(resource => [category.name, course.name, resource.name, resource.summary || '', resource.search || ''].join(' ').toLocaleLowerCase().includes(q)) })).filter(course => course.resources.length);
     if (!courses.length) continue;
     const section = document.createElement('section');
     section.className = 'category'; section.id = category.name;
@@ -35,7 +35,7 @@ function draw() {
       const resources = document.createElement('div'); resources.className = 'resource-list';
       for (const resource of course.resources) {
         const link = document.createElement('a'); link.href = resource.url; link.className = 'resource-link';
-        const type = document.createElement('span'); type.className = 'resource-kind'; type.textContent = resourceKind(resource.name);
+        const type = document.createElement('span'); type.className = 'resource-kind'; type.textContent = resource.kind || resourceKind(resource.name);
         const title = document.createElement('span'); title.className = 'resource-title'; title.textContent = resource.name;
         const arrow = document.createElement('span'); arrow.className = 'resource-arrow'; arrow.textContent = '↗'; arrow.setAttribute('aria-hidden','true');
         link.append(type, title, arrow); resources.append(link); shown++;
@@ -47,7 +47,7 @@ function draw() {
   if (!shown) { const empty = document.createElement('p'); empty.className = 'empty'; empty.textContent = data.length ? '没有找到匹配的资源。' : '暂无资源，请从仓库上传题解。'; catalog.append(empty); }
 }
 search.addEventListener('input', draw);
-fetch('catalog.json?v=20261013c').then(r => { if (!r.ok) throw Error(); return r.json(); }).then(value => {
+fetch('catalog.json?v=20261013d').then(r => { if (!r.ok) throw Error(); return r.json(); }).then(value => {
   data = value;
   const courses = data.reduce((n, category) => n + category.courses.length, 0);
   const resources = data.reduce((n, category) => n + category.courses.reduce((m, course) => m + course.resources.length, 0), 0);
