@@ -1,0 +1,59 @@
+% title: 讲义：高维代数簇 · 除子的丰沛判别法、Hodge定理与消灭定理
+% renderer: btex
+% legacy-title: 用户:Solution/ 讲义: 高维代数簇/除子的丰沛判别法、Hodge定理与消灭定理
+% source: https://bananaspace.org/legacy/wiki/%E7%94%A8%E6%88%B7:Solution/_%E8%AE%B2%E4%B9%89:_%E9%AB%98%E7%BB%B4%E4%BB%A3%E6%95%B0%E7%B0%87/%E9%99%A4%E5%AD%90%E7%9A%84%E4%B8%B0%E6%B2%9B%E5%88%A4%E5%88%AB%E6%B3%95%E3%80%81Hodge%E5%AE%9A%E7%90%86%E4%B8%8E%E6%B6%88%E7%81%AD%E5%AE%9A%E7%90%86
+% summary: 从香蕉空间旧站迁移的原始 bTeX 页面。
+\newcommand{\dR}{\rm{dR}}
+
+\section{除子的丰沛性}
+\begin{theorem}[中井-Moishezon判别法，[Har77.V.1.10]]
+    设$S$是光滑射影曲面，$D$是$S$上的除子，且满足
+    \begin{itemize}
+        \item[(1)] $D^{2} > 0$；
+        \item[(2)] 对于任何有效除子$C$，有$D \cdot C > 0$，
+    \end{itemize}
+    则$D$是丰沛的.
+\end{theorem}
+
+\section{一些解析理论}
+\begin{theorem}[Hodge]
+    设$X$是光滑射影簇，则成立
+    \begin{itemize}
+        \item[(1)] $H_{\dR}^{k}(X) \cong 
+                    \bigoplus_{p+q=k}H^{p,q}(X) = 
+                    \bigoplus_{p+q=k}H^{q}(X,\Omega^{p})$；
+        \item[(2)] $H^{p,q}(X) = \overline{H^{q,p}(X)}$；
+        \item[(3)] $h^{p,q}(X) = h^{n-p,n-q}(X)$.
+    \end{itemize}
+\end{theorem}
+
+\section{消灭定理}
+\begin{theorem}[Kodaira消灭定理]
+    设$X$是$n$维射影簇，$L$上$X$上的丰沛线丛，
+    则$\forall \, i > 0$，有
+    \[H^{i}(X,\omega_{X} \otimes L) 
+    \cong H^{n-i}(X,L^{-1})^{\vee} = 0.\]
+\end{theorem}
+
+\begin{theorem}[Ramanujan消灭定理]
+    设$S$是光滑射影曲面，有效除子$D \geq 0$满足
+    \begin{itemize}
+        \item[(1)] $D$是$1$-连通的；
+        \item[(2)] 存在$n > 0$使得$h^{0}(S,nD) \geq 2$，且$|nD|$是有理线束.
+    \end{itemize}
+    则$\forall \, i > 0$，$H^{i}(S,K_{S} + D) = 0$.
+\end{theorem}
+
+\begin{corollary}[Ramanujan]
+    设$S$是光滑射影曲面，有效除子$D \geq 0$是$1$-连通的，且$D^{2} > 0$，
+    则$H^{1}(S,K_{S} + D) = 0$.
+\end{corollary}
+
+\begin{theorem}[川又-Viehweg消灭定理]
+    设$S$是光滑射影簇，$D$是nef且big的$\mathbb{Q}$-除子，
+    且$\{D\} := D - \lfloor D \rfloor$的支集是snc的，
+    则$\forall \, i > 0$，$H^{i}(X,K_{X} + \lceil D \rceil) = 0$.
+    特别地，若$D$还是整除子，则$\forall \, i > 0$，有$H^{i}(X,K_{X} + D) = 0$.
+\end{theorem}
+
+\section{Ramanujan消灭定理的证明}

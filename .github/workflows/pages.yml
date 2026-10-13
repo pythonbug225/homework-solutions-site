@@ -20,9 +20,48 @@ jobs:
       - name: Install document tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends pandoc texlive-xetex texlive-lang-chinese texlive-latex-extra texlive-fonts-recommended lmodern fonts-noto-cjk
-      - name: Render course pages and PDFs
-        run: python3 scripts/build.py --output dist
+          sudo apt-get install -y --no-install-recommends pandoc pdf2svg texlive-latex-extra texlive-pictures texlive-fonts-recommended lmodern fonts-noto-cjk
+      - name: Install Banana Space bTeX renderer
+        run: |
+          mkdir -p work
+          git clone https://github.com/banana-space/btex.git work/btex
+          git -C work/btex checkout 7bcbc97b98d2cdbc21aa375295bfc2450c73cc1c
+          cd work/btex
+          npm install --package-lock=false --ignore-scripts
+          npm install --package-lock=false --save-dev @types/node@16
+          npm run build
+      - name: Install Banana Space TikZ renderer
+        run: |
+          git clone https://github.com/banana-space/tikz2svg.git work/tikz2svg
+          git -C work/tikz2svg checkout b3e44ba2bf2dd415fa68b38d9910c79ac4a71b69
+          cd work/tikz2svg
+          npm install --package-lock=false --ignore-scripts
+          npm run build
+          cat > preamble.tex <<'EOF'
+          \documentclass[10pt,crop,tikz]{standalone}
+          \usepackage{tikz-cd}
+          \usepackage{amsmath}
+          \usepackage{amsfonts}
+          \usepackage{mathrsfs}
+          \begin{document}
+          EOF
+          pdflatex -ini '&pdflatex preamble.tex\dump' > preamble-build.log
+      - name: Render course pages
+        run: |
+          ( cd work/tikz2svg && exec node dist/main.js ) > tikz.log 2>&1 &
+          tikz_pid=$!
+          node work/btex/dist/main.js > btex.log 2>&1 &
+          btex_pid=$!
+          trap 'kill $btex_pid $tikz_pid || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl -fsS -X POST 'http://127.0.0.1:9292?type=tikzpicture&tex=%5Cdraw%20(0,0)--(1,1)%3B' | grep -q '<svg'; then break; fi
+            sleep 1
+          done
+          for attempt in $(seq 1 30); do
+            if curl -fsS -X POST -H 'Content-Type: application/json' -d '{"code":"test"}' http://127.0.0.1:7200 > /dev/null; then break; fi
+            sleep 1
+          done
+          python3 scripts/build.py --output dist
       - uses: actions/upload-pages-artifact@v4
         with:
           path: dist

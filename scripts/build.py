@@ -3,9 +3,11 @@
 import argparse
 import html
 import json
+import os
 import re
 import shutil
 import subprocess
+import urllib.request
 from collections import defaultdict
 from pathlib import Path
 from urllib.parse import quote
@@ -13,7 +15,42 @@ from urllib.parse import quote
 ROOT = Path(__file__).resolve().parents[1]
 SOLUTIONS = ROOT / "solutions"
 ORDER = ["公共课", "分析", "代数", "微分几何", "拓扑", "代数几何", "数论和表示论", "数学物理", "概率和统计", "应用", "博资考"]
-META = re.compile(r"^%\s*(title|author|summary|source):\s*(.+)$", re.I)
+META = re.compile(r"^%\s*(title|author|summary|source|renderer|legacy-title):\s*(.+)$", re.I)
+
+
+def metadata(source):
+    info = {}
+    for line in source.splitlines()[:40]:
+        match = META.match(line)
+        if match:
+            info[match.group(1).lower()] = match.group(2).strip()
+    return info
+
+
+def render_btex(source, lookup):
+    payload = json.dumps({"code": source}, ensure_ascii=False).encode("utf-8")
+    request = urllib.request.Request(os.environ.get("BTEX_URL", "http://127.0.0.1:7200"), payload, {"Content-Type": "application/json"})
+    with urllib.request.urlopen(request, timeout=180) as response:
+        result = json.load(response)
+    if result.get("errors"):
+        raise RuntimeError("; ".join(map(str, result["errors"][:4])))
+    fragment = result["html"]
+    if "[TikZ 编译错误]" in fragment:
+        raise RuntimeError("TikZ diagram conversion failed")
+    legacy_title = metadata(source).get("legacy-title", "")
+
+    def link(match):
+        page = html.unescape(match.group(1))
+        target = legacy_title + "/" + page[2:] if page.startswith("./") else page
+        href = lookup.get(target)
+        if href:
+            href = "../../../../" + href
+        else:
+            href = "https://bananaspace.org/legacy/wiki/" + quote(target.replace(" ", "_"), safe=":/()")
+        return f'<a href="{html.escape(href, quote=True)}">{match.group(2)}</a>'
+
+    fragment = re.sub(r'<btex-link data-page="([^"]*)">(.*?)</btex-link>', link, fragment, flags=re.S)
+    return fragment
 
 
 def url_parts(parts):
@@ -37,12 +74,12 @@ def document_page(category, course, resource, files, siblings):
     nav = ''.join(f'<a class="side-link{" current" if name == resource else ""}" href="../{quote(name)}/">{esc(name)}</a>' for name in siblings)
     blocks = []
     for item in files:
-        links = f'<a href="{esc(item["source"])}" download>下载 .tex</a>'
-        if item["pdf"]:
-            links = f'<a class="download" href="{esc(item["pdf"])}" download>下载 PDF ↓</a>' + links
+        links = (f'<button type="button" class="download" onclick="window.print()" '
+                 f'aria-label="导出 {esc(item["title"], quote=True)} 的 PDF">导出 PDF ↓</button>'
+                 f'<a href="{esc(item["source"])}" download>下载 .tex</a>')
         content = item["rendered"] if item["rendered"] else '<p class="notice">此文件暂时无法渲染，请下载 LaTeX 源码查看。</p>'
         origin = item.get("origin", "")
-        credit = (f'<p class="source-credit">原文来源：<a href="{esc(origin, quote=True)}" rel="noopener noreferrer">香蕉空间旧站 ↗</a> · 已适配网页与 PDF 格式 · <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></p>' if origin.startswith("https://bananaspace.org/") else "")
+        credit = (f'<p class="source-credit">原文来源：<a href="{esc(origin, quote=True)}" rel="noopener noreferrer">香蕉空间旧站 ↗</a> · 已适配网页格式 · <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></p>' if origin.startswith("https://bananaspace.org/") else "")
         blocks.append(f'<section class="document"><div class="document-bar"><h2>{esc(item["title"])}</h2><div class="actions">{links}</div></div>{credit}<div class="tex-body">{content}</div></section>')
     template = (ROOT / "web" / "resource.html").read_text(encoding="utf-8")
     return (template.replace("{{TITLE}}", esc(resource + " · " + course))
@@ -50,7 +87,8 @@ def document_page(category, course, resource, files, siblings):
             .replace("{{RESOURCE}}", esc(resource))
             .replace("{{BREADCRUMB}}", crumb)
             .replace("{{SIDEBAR}}", nav)
-            .replace("{{DOCUMENTS}}", "\n".join(blocks)))
+            .replace("{{DOCUMENTS}}", "\n".join(blocks))
+            .replace("{{EXTRA_STYLES}}", '<link rel="stylesheet" href="../../../../assets/katex.min.css">' if any(item.get("renderer") == "btex" for item in files) else ""))
 
 
 def main():
@@ -66,9 +104,23 @@ def main():
     for name in ("index.html", "style.css", "app.js"):
         shutil.copy2(ROOT / "web" / name, out / name)
 
+    btex_files = [p for p in SOLUTIONS.rglob("*.tex") if metadata(p.read_text(encoding="utf-8")).get("renderer") == "btex"]
+    legacy_lookup = {}
+    for tex in btex_files:
+        rel = tex.relative_to(SOLUTIONS)
+        legacy_title = metadata(tex.read_text(encoding="utf-8")).get("legacy-title")
+        if legacy_title:
+            legacy_lookup[legacy_title] = "resources/" + url_parts(rel.parts[:3]) + "/"
+    assets = out / "assets"
+    if btex_files:
+        katex = Path(os.environ.get("BTEX_KATEX_DIR", str(ROOT / "work" / "btex" / "node_modules" / "katex" / "dist")))
+        assets.mkdir()
+        shutil.copy2(katex / "katex.min.css", assets / "katex.min.css")
+        shutil.copytree(katex / "fonts", assets / "fonts")
+
     tree = defaultdict(lambda: defaultdict(dict))
     count = 0
-    pdf_failures = []
+    render_failures = []
     for category_dir in sorted(SOLUTIONS.iterdir()) if SOLUTIONS.exists() else []:
         if not category_dir.is_dir():
             continue
@@ -81,30 +133,34 @@ def main():
                 for tex in tex_files:
                     count += 1
                     source = tex.read_text(encoding="utf-8")
-                    info = {}
-                    for line in source.splitlines()[:40]:
-                        match = META.match(line)
-                        if match:
-                            info[match.group(1).lower()] = match.group(2).strip()
+                    info = metadata(source)
                     rel = tex.relative_to(SOLUTIONS)
                     target = out / "files" / rel
                     target.parent.mkdir(parents=True, exist_ok=True)
                     target.write_text(source, encoding="utf-8")
                     rendered = out / "work" / rel.with_suffix(".html")
                     rendered.parent.mkdir(parents=True, exist_ok=True)
-                    html_ok = run(["pandoc", "-f", "latex", "-t", "html5", "--mathml", "-o", str(rendered), tex.name], tex.parent)
-                    pdf = target.with_suffix(".pdf")
-                    pdf_ok = run(["pandoc", "-f", "latex", "--pdf-engine=xelatex", "-V", "documentclass=ctexart", "-o", str(pdf), tex.name], tex.parent)
-                    if not pdf_ok:
-                        pdf_failures.append(str(tex.relative_to(ROOT)))
+                    if info.get("renderer") == "btex":
+                        try:
+                            rendered.write_text(render_btex(source, legacy_lookup), encoding="utf-8")
+                            html_ok = True
+                        except Exception as exc:
+                            print(f"bTeX build failed for {tex.relative_to(ROOT)}: {exc}")
+                            html_ok = False
+                    else:
+                        html_ok = run(["pandoc", "-f", "latex", "-t", "html5", "--mathml", "-o", str(rendered), tex.name], tex.parent)
+                    if not html_ok:
+                        render_failures.append(str(tex.relative_to(ROOT)))
                     tree[category_dir.name][course_dir.name][resource_dir.name].append({
                         "title": info.get("title", tex.stem),
                         "rendered": rendered.read_text(encoding="utf-8") if html_ok else "",
                         "source": "../../../../files/" + url_parts(rel.parts),
-                        "pdf": "../../../../files/" + url_parts(rel.with_suffix(".pdf").parts) if pdf_ok else None,
                         "origin": info.get("source", ""),
                         "summary": info.get("summary", ""),
+                        "renderer": info.get("renderer", ""),
                     })
+                    if count % 25 == 0:
+                        print(f"Rendered {count} TeX files", flush=True)
     shutil.rmtree(out / "work", ignore_errors=True)
     catalog = []
     for category in sorted(tree, key=lambda name: (ORDER.index(name) if name in ORDER else len(ORDER), name)):
@@ -121,8 +177,8 @@ def main():
         catalog.append({"name": category, "courses": courses})
     (out / "catalog.json").write_text(json.dumps(catalog, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"Built {len(catalog)} categories and {count} TeX files")
-    if pdf_failures:
-        raise SystemExit("PDF generation failed: " + ", ".join(pdf_failures))
+    if render_failures:
+        raise SystemExit("HTML rendering failed: " + ", ".join(render_failures))
 
 
 if __name__ == "__main__":

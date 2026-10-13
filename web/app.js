@@ -47,7 +47,7 @@ function draw() {
   if (!shown) { const empty = document.createElement('p'); empty.className = 'empty'; empty.textContent = data.length ? '没有找到匹配的资源。' : '暂无资源，请从仓库上传题解。'; catalog.append(empty); }
 }
 search.addEventListener('input', draw);
-fetch('catalog.json?v=20261013b').then(r => { if (!r.ok) throw Error(); return r.json(); }).then(value => {
+fetch('catalog.json?v=20261013c').then(r => { if (!r.ok) throw Error(); return r.json(); }).then(value => {
   data = value;
   const courses = data.reduce((n, category) => n + category.courses.length, 0);
   const resources = data.reduce((n, category) => n + category.courses.reduce((m, course) => m + course.resources.length, 0), 0);
