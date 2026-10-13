@@ -36,4 +36,4 @@ solutions/代数/抽象代数/期末考试/试卷解析.tex
 
 旧站的[版权说明](https://bananaspace.org/legacy/wiki/香蕉空间:版权)采用 [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)；迁移的题目内容同样按该许可发布，网站代码的 MIT 许可不覆盖这些题目。每个迁入页面均提供原文链接。旧站“数学分析（旧）试卷”中两处 `\hfill` 改为 `\quad`，以兼容原编译器。原先迁入的三份 2026 春复变函数试卷按独立试卷拆分，保留在目录中。
 
-重新导入时，先从旧站的“特殊:导出页面”导出总目录、正文页及子页面的 XML，然后运行 `python3 scripts/import_legacy.py <XML 文件夹>`。该脚本会拒绝覆盖非 bTeX 的维护者文件。GitHub Actions 会自动安装并运行两种旧站渲染服务；本地构建这些页面时需先启动 bTeX 与 TikZ 转换服务，并提供 KaTeX 资源。构建会在任一资源网页渲染失败时退出。TikZ 转换器内部仍会编译临时图形；本站不会存储或发布题解 PDF。
+重新导入时，先从旧站的“特殊:导出页面”导出总目录、正文页及子页面的 XML，然后运行 `python3 scripts/import_legacy.py <XML 文件夹>`。该脚本会拒绝覆盖非 bTeX 的维护者文件。GitHub Actions 会自动安装并运行两种旧站渲染服务；本地构建这些页面时需先启动 bTeX 与 TikZ 转换服务，并提供 KaTeX 资源。已验证的旧站图形缓存保存在 `assets/tikz-cache/`，供线上构建复用；新增图形仍由 TikZ 服务转换。构建会在任一资源网页渲染失败时退出。TikZ 转换器内部仍会编译临时图形；本站不会存储或发布题解 PDF。

@@ -49,6 +49,9 @@ jobs:
           pdflatex -ini '&pdflatex preamble.tex\dump' > preamble-build.log
       - name: Render course pages
         run: |
+          cache_day=$(date -u -d '4 hours ago' +%F)
+          mkdir -p "work/tikz2svg/temp/$cache_day"
+          cp assets/tikz-cache/*.svg "work/tikz2svg/temp/$cache_day/"
           ( cd work/tikz2svg && exec node dist/main.js ) > tikz.log 2>&1 &
           tikz_pid=$!
           node work/btex/dist/main.js > btex.log 2>&1 &
