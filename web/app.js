@@ -1,35 +1,47 @@
 const state = { entries: [], selected: null };
 const $ = id => document.getElementById(id);
-const cards = $('cards');
+const tree = $('tree');
 const dialog = $('reader');
 
-function renderCards() {
+function renderTree() {
   const q = $('search').value.trim().toLocaleLowerCase();
-  const course = $('course').value;
-  const matches = state.entries.filter(e => (!course || e.course === course) && [e.title,e.course,e.summary,e.author,e.path].join(' ').toLocaleLowerCase().includes(q));
-  cards.replaceChildren();
-  if (!matches.length) { const empty = document.createElement('div'); empty.className = 'empty'; empty.textContent = state.entries.length ? '没有找到匹配的题解，试试其他关键词。' : '暂无题解，欢迎从 GitHub 添加第一份。'; cards.append(empty); return; }
-  for (const e of matches) {
-    const card = document.createElement('article'); card.className = 'card';
-    const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = e.course;
-    const title = document.createElement('h3'); title.textContent = e.title;
-    const description = document.createElement('p'); description.textContent = e.summary || '打开题解，阅读推导过程与 LaTeX 源码。';
-    const bottom = document.createElement('div'); bottom.className = 'card-bottom';
-    const author = document.createElement('span'); author.textContent = e.author || '开放题解';
-    const button = document.createElement('button'); button.textContent = '阅读解析 ↗'; button.addEventListener('click', () => openReader(e));
-    bottom.append(author, button); card.append(tag,title,description,bottom); cards.append(card);
+  const entries = state.entries.filter(e => [e.title,e.course,e.summary,e.author,e.path].join(' ').toLocaleLowerCase().includes(q));
+  tree.replaceChildren();
+  if (!entries.length) { const empty = document.createElement('div'); empty.className = 'empty'; empty.textContent = state.entries.length ? '没有找到匹配的题解，试试其他关键词。' : '暂无题解，欢迎从 GitHub 添加第一份。'; tree.append(empty); return; }
+  const root = { folders: new Map(), files: [] };
+  for (const e of entries) {
+    let node = root;
+    for (const folder of e.folders) {
+      if (!node.folders.has(folder)) node.folders.set(folder, { folders: new Map(), files: [] });
+      node = node.folders.get(folder);
+    }
+    node.files.push(e);
   }
+  function draw(node, parent, depth) {
+    for (const [name, child] of node.folders) {
+      const details = document.createElement('details'); details.className = 'folder'; details.open = depth === 0 || !!q;
+      const summary = document.createElement('summary'); summary.textContent = name;
+      details.append(summary); draw(child, details, depth + 1); parent.append(details);
+    }
+    for (const e of node.files) {
+      const button = document.createElement('button'); button.className = 'file'; button.type = 'button';
+      const icon = document.createElement('span'); icon.textContent = 'TEX'; icon.className = 'file-icon';
+      const words = document.createElement('span'); words.className = 'file-words';
+      const title = document.createElement('strong'); title.textContent = e.title;
+      const description = document.createElement('small'); description.textContent = e.summary || e.path.split('/').at(-1);
+      words.append(title, description); button.append(icon, words); button.addEventListener('click', () => openReader(e)); parent.append(button);
+    }
+  }
+  draw(root, tree, 0);
 }
 
 async function openReader(e) {
   state.selected = e;
   $('readerTitle').textContent = e.title;
-  $('readerCourse').textContent = e.course;
+  $('readerCourse').textContent = e.folders.join(' / ');
   $('renderFrame').src = e.html || 'about:blank';
   $('renderFrame').hidden = !e.html;
   $('renderEmpty').hidden = !!e.html;
-  $('pdfLink').hidden = !e.pdf;
-  if (e.pdf) $('pdfLink').href = e.pdf;
   $('sourceCode').textContent = '正在加载源码…';
   selectTab('render');
   dialog.showModal();
@@ -46,17 +58,13 @@ function selectTab(name) {
 document.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => selectTab(b.dataset.tab)));
 $('close').addEventListener('click', () => dialog.close());
 dialog.addEventListener('close', () => { $('renderFrame').src = 'about:blank'; state.selected = null; });
-$('search').addEventListener('input', renderCards);
-$('course').addEventListener('change', renderCards);
-
+$('search').addEventListener('input', renderTree);
 fetch('catalog.json').then(r => { if (!r.ok) throw new Error(); return r.json(); }).then(entries => {
   state.entries = entries;
   $('count').textContent = `${entries.length} 份题解`;
-  for (const name of [...new Set(entries.map(e => e.course))].sort()) { const option = document.createElement('option'); option.value = name; option.textContent = name; $('course').append(option); }
-  renderCards();
-}).catch(() => { $('count').textContent = '目录加载失败'; cards.innerHTML = '<div class="empty">题解目录暂时无法加载，请刷新页面。</div>'; });
+  renderTree();
+}).catch(() => { $('count').textContent = '目录加载失败'; tree.innerHTML = '<div class="empty">题解目录暂时无法加载，请刷新页面。</div>'; });
 
-// GitHub Pages project sites use /owner/repository; resolve the repository from the published path.
 const parts = location.pathname.split('/').filter(Boolean);
 if (location.hostname.endsWith('.github.io') && parts[0]) $('repoLink').href = `https://github.com/${location.hostname.split('.')[0]}/${encodeURIComponent(parts[0])}`;
 else $('repoLink').href = 'https://github.com';

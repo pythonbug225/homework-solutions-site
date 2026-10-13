@@ -21,14 +21,14 @@
       <div class="scribble" aria-hidden="true">f′(x) = lim<sub>h→0</sub> [f(x+h)−f(x)] / h</div>
     </section>
     <section class="library" aria-labelledby="libraryTitle">
-      <div class="section-top"><div><span class="eyebrow">EXPLORE THE LIBRARY</span><h2 id="libraryTitle">题解资料库</h2></div><p>选择课程，找到你正在思考的那道题。</p></div>
-      <div class="toolbar"><label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="搜索题目、课程或关键词" aria-label="搜索题目、课程或关键词"></label><select id="course" aria-label="按课程筛选"><option value="">全部课程</option></select></div>
-      <div id="cards" class="cards" aria-live="polite"></div>
+      <div class="section-top"><div><span class="eyebrow">EXPLORE THE LIBRARY</span><h2 id="libraryTitle">题解资料库</h2></div><p>按文件夹逐级展开，找到你正在思考的那道题。</p></div>
+      <div class="toolbar"><label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="搜索文件夹、题目或关键词" aria-label="搜索文件夹、题目或关键词"></label></div>
+      <div id="tree" class="tree" aria-live="polite"></div>
     </section>
-    <section class="about"><div><span class="eyebrow">BUILT TO BE SHARED</span><h2>知识属于每个人。</h2></div><p>这个项目由公开仓库驱动。维护者提交新的 <code>.tex</code> 文件后，网站会自动更新题解目录。发现错误或想贡献解析？欢迎通过 GitHub 提交修改。</p></section>
+    <section class="about"><div><span class="eyebrow">BUILT TO BE SHARED</span><h2>知识属于每个人。</h2></div><p>这个项目由公开仓库驱动。维护者上传新的 <code>.tex</code> 文件后，网站会按文件夹自动更新目录。发现错误或想贡献解析？欢迎通过 GitHub 提交修改。</p></section>
   </main>
   <footer><span>作业解析 · 开放题解资料库</span><span>用耐心和 LaTeX 写成。</span></footer>
-  <dialog id="reader"><div class="reader-head"><div><span id="readerCourse"></span><h2 id="readerTitle"></h2></div><button id="close" aria-label="关闭">×</button></div><div class="reader-tabs"><button class="active" data-tab="render">阅读解析</button><button data-tab="source">LaTeX 源码</button><a id="pdfLink" hidden target="_blank" rel="noopener">下载 PDF ↗</a></div><div id="renderPanel" class="reader-body"><iframe id="renderFrame" title="题解正文" sandbox=""></iframe><p id="renderEmpty" hidden>这份题解暂时无法渲染。请查看 LaTeX 源码。</p></div><div id="sourcePanel" class="reader-body" hidden><pre><code id="sourceCode"></code></pre></div></dialog>
+  <dialog id="reader"><div class="reader-head"><div><span id="readerCourse"></span><h2 id="readerTitle"></h2></div><button id="close" aria-label="关闭">×</button></div><div class="reader-tabs"><button class="active" data-tab="render">阅读解析</button><button data-tab="source">LaTeX 源码</button></div><div id="renderPanel" class="reader-body"><iframe id="renderFrame" title="题解正文" sandbox=""></iframe><p id="renderEmpty" hidden>这份题解暂时无法渲染。请查看 LaTeX 源码。</p></div><div id="sourcePanel" class="reader-body" hidden><pre><code id="sourceCode"></code></pre></div></dialog>
   <script src="app.js"></script>
 </body>
 </html>

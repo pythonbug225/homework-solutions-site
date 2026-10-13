@@ -4,7 +4,7 @@
 
 ## 添加解析
 
-在 `solutions/` 下按课程和题目建立文件夹，例如 `solutions/高等数学/导数例题/main.tex`。每份要独立展示的 `.tex` 文件须包含 `\\documentclass` 和 `\\begin{document}`。同目录的图片、`.bib` 和被 `\\input` 的片段可以一并提交；片段不会单独编译。
+在 `solutions/` 下按课程、章节、题目建立任意层级的文件夹，例如 `solutions/高等数学/导数例题/链式法则.tex`。每个 `.tex` 文件都会成为目录中的一项，可以只写正文片段和公式，不需要 `\\documentclass` 或 `\\begin{document}`。维护者通过 GitHub 上传或提交文件即可。
 
 在导言区写可选的元数据注释：
 
@@ -15,9 +15,9 @@
 % summary: 链式法则与求导步骤
 ```
 
-提交到 `main` 后，Actions 自动发现所有独立文档，用 Pandoc 生成网页公式（MathML），并用 XeLaTeX 编译 PDF，再把正文、PDF 和源码发布到 Pages。Pandoc 对复杂 LaTeX 宏包的支持有限；若网页转换失败仍可查看源码，PDF 编译结果单独标记。详细错误见 Actions 日志。请只合并可信维护者审核过的 LaTeX；TeX 文件可能读取构建环境中的文件，因此不要在编译任务中加入仓库密钥。
+提交到 `main` 后，Actions 自动发现 `solutions/` 中的所有 `.tex` 文件，按文件夹生成分级目录，用 Pandoc 将正文和公式转换为 HTML/MathML，并发布到 Pages。Pandoc 对复杂 LaTeX 宏包和 `\\input` 的支持有限；若网页转换失败仍可查看源码，详细错误见 Actions 日志。请只合并可信维护者审核过的文件。
 
-本地验证：`python3 scripts/build.py --output dist`。需要安装 `pandoc`、`latexmk`、`xelatex` 和相关字体/宏包。可加 `--no-compile` 跳过 PDF 编译。
+本地验证：`python3 scripts/build.py --output dist`。需要安装 `pandoc`。
 
 ## 交接
 

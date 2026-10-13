@@ -2,20 +2,19 @@
 % course: 高等数学
 % author: 公益题解示例
 % summary: 从复合函数结构出发，逐步求导并检查结果。
-\documentclass[12pt]{ctexart}
-\usepackage{amsmath}
-\title{链式法则：复合函数求导}
-\date{}
-\begin{document}
-\maketitle
+
 \section*{题目}
+
 求函数 $f(x)=(3x^2+1)^4$ 的导数。
+
 \section*{解析}
+
 令 $u=3x^2+1$，则 $f=u^4$。根据链式法则，
 \[
 \frac{df}{dx}=\frac{df}{du}\frac{du}{dx}
 =4u^3\cdot6x=24x(3x^2+1)^3.
 \]
+
 \section*{答案}
+
 \[\boxed{f'(x)=24x(3x^2+1)^3}\]
-\end{document}

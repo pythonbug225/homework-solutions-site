@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Discover standalone LaTeX documents and build a static Pages catalog."""
+"""Discover every LaTeX file and build a folder-based static Pages catalog."""
 import argparse
 import json
 import re
@@ -15,7 +15,6 @@ META = re.compile(r"^%\s*(title|course|author|summary):\s*(.+)$", re.I)
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, default=ROOT / "dist")
-    parser.add_argument("--no-compile", action="store_true")
     args = parser.parse_args()
     out = args.output.resolve()
     if out == ROOT or ROOT not in out.parents:
@@ -27,8 +26,6 @@ def main():
     entries = []
     for tex in sorted((ROOT / "solutions").rglob("*.tex")):
         source = tex.read_text(encoding="utf-8")
-        if not re.search(r"\\documentclass\b", source) or not re.search(r"\\begin\s*\{document\}", source):
-            continue
         rel = tex.relative_to(ROOT)
         info = {}
         for line in source.splitlines()[:40]:
@@ -38,9 +35,7 @@ def main():
         target = out / "files" / rel
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(source, encoding="utf-8")
-        pdf = target.with_suffix(".pdf")
         html = target.with_suffix(".html")
-        ok = False
         html_ok = False
         try:
             rendered = subprocess.run(
@@ -52,29 +47,18 @@ def main():
                 print(f"HTML render failed: {rel}\n{(rendered.stdout + rendered.stderr)[-2000:]}")
         except (subprocess.TimeoutExpired, FileNotFoundError) as exc:
             print(f"HTML render failed: {rel}: {exc}")
-        if not args.no_compile:
-            try:
-                result = subprocess.run(
-                    ["latexmk", "-xelatex", "-interaction=nonstopmode", "-halt-on-error", "-file-line-error", "-no-shell-escape", f"-output-directory={target.parent}", tex.name],
-                    cwd=tex.parent, capture_output=True, text=True, timeout=180,
-                )
-                ok = result.returncode == 0 and pdf.exists()
-                if not ok:
-                    print(f"Compile failed: {rel}\n{(result.stdout + result.stderr)[-4000:]}")
-            except (subprocess.TimeoutExpired, FileNotFoundError) as exc:
-                print(f"Compile failed: {rel}: {exc}")
         entries.append({
-            "title": info.get("title", tex.parent.name),
+            "title": info.get("title", tex.stem),
             "course": info.get("course", rel.parts[1] if len(rel.parts) > 2 else "其他"),
             "author": info.get("author", ""),
             "summary": info.get("summary", ""),
             "path": str(rel),
+            "folders": list(rel.parts[1:-1]),
             "source": "files/" + "/".join(quote(p) for p in rel.parts),
             "html": "files/" + "/".join(quote(p) for p in rel.with_suffix(".html").parts) if html_ok else None,
-            "pdf": "files/" + "/".join(quote(p) for p in rel.with_suffix(".pdf").parts) if ok else None,
         })
     (out / "catalog.json").write_text(json.dumps(entries, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"Discovered {len(entries)} documents; compiled {sum(bool(e['pdf']) for e in entries)} PDFs")
+    print(f"Discovered {len(entries)} TeX files; rendered {sum(bool(e['html']) for e in entries)} HTML pages")
 
 
 if __name__ == "__main__":
