@@ -1,34 +1,13 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="开放的作业解析资料库：按课程查找题解，阅读公式与 LaTeX 源码。">
-  <title>作业解析 · 开放题解资料库</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="按公共课、分析、代数、拓扑、应用和博资考浏览开放的数学课程资源。">
+  <title>数学课程资源</title><link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand"><span class="mark">∑</span><span>作业解析 <small>OPEN SOLUTIONS</small></span></div>
-    <a class="repo" id="repoLink" href="#">在 GitHub 上贡献 ↗</a>
-  </header>
-  <main>
-    <section class="hero">
-      <div class="eyebrow">免费的学习资料 · 持续更新</div>
-      <h1>每一道题，<br><em>都值得被讲明白。</em></h1>
-      <p>浏览公开的作业解析，直接阅读排版好的公式与推导。所有题解以 LaTeX 开源保存，方便勘误、补充和交接。</p>
-      <div class="hero-meta"><span id="count">正在加载题解…</span><span>·</span><span>开放阅读</span><span>·</span><span>欢迎共建</span></div>
-      <div class="scribble" aria-hidden="true">f′(x) = lim<sub>h→0</sub> [f(x+h)−f(x)] / h</div>
-    </section>
-    <section class="library" aria-labelledby="libraryTitle">
-      <div class="section-top"><div><span class="eyebrow">EXPLORE THE LIBRARY</span><h2 id="libraryTitle">题解资料库</h2></div><p>按文件夹逐级展开，找到你正在思考的那道题。</p></div>
-      <div class="toolbar"><label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="搜索文件夹、题目或关键词" aria-label="搜索文件夹、题目或关键词"></label></div>
-      <div id="tree" class="tree" aria-live="polite"></div>
-    </section>
-    <section class="about"><div><span class="eyebrow">BUILT TO BE SHARED</span><h2>知识属于每个人。</h2></div><p>这个项目由公开仓库驱动。维护者上传新的 <code>.tex</code> 文件后，网站会按文件夹自动更新目录。发现错误或想贡献解析？欢迎通过 GitHub 提交修改。</p></section>
-  </main>
-  <footer><span>作业解析 · 开放题解资料库</span><span>用耐心和 LaTeX 写成。</span></footer>
-  <dialog id="reader"><div class="reader-head"><div><span id="readerCourse"></span><h2 id="readerTitle"></h2></div><button id="close" aria-label="关闭">×</button></div><div class="reader-tabs"><button class="active" data-tab="render">阅读解析</button><button data-tab="source">LaTeX 源码</button></div><div id="renderPanel" class="reader-body"><iframe id="renderFrame" title="题解正文" sandbox=""></iframe><p id="renderEmpty" hidden>这份题解暂时无法渲染。请查看 LaTeX 源码。</p></div><div id="sourcePanel" class="reader-body" hidden><pre><code id="sourceCode"></code></pre></div></dialog>
+  <header class="topbar"><a class="brand" href="./"><span class="brand-icon">∑</span><span>数学课程资源</span></a><label class="search"><span>⌕</span><input id="search" type="search" placeholder="搜索课程或资源…" aria-label="搜索课程或资源"></label><nav><a href="#catalog">分类</a><a id="repoLink" href="https://github.com/sunlay01/homework-solutions">贡献资源 ↗</a></nav></header>
+  <main class="home-main"><div class="intro"><p class="kicker">开放 · 免费 · 可共建</p><h1>数学课程资源</h1><p>按课程类别查找习题、考试与讲义。点击资源即可阅读公式排版后的内容，并下载 PDF。</p></div><div id="catalog" class="catalog" aria-live="polite"></div></main>
+  <footer>数学课程资源 · 由公开仓库维护</footer>
   <script src="app.js"></script>
-</body>
-</html>
+</body></html>
