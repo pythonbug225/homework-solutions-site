@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Build a three-level course catalog and one page per resource folder."""
 import argparse
+import hashlib
 import html
 import json
 import os
@@ -142,7 +143,9 @@ def main():
                     rendered.parent.mkdir(parents=True, exist_ok=True)
                     if info.get("renderer") == "btex":
                         try:
-                            rendered.write_text(render_btex(source, legacy_lookup), encoding="utf-8")
+                            cached = ROOT / "assets" / "rendered-fallback" / (hashlib.sha256(source.encode("utf-8")).hexdigest() + ".html")
+                            fragment = cached.read_text(encoding="utf-8") if cached.is_file() else render_btex(source, legacy_lookup)
+                            rendered.write_text(fragment, encoding="utf-8")
                             html_ok = True
                         except Exception as exc:
                             print(f"bTeX build failed for {tex.relative_to(ROOT)}: {exc}")
