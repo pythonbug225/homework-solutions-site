@@ -1,0 +1,12 @@
+dist/
+work/
+outputs/
+*.aux
+*.log
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.xdv
+*.out
+*.toc
+__pycache__/
