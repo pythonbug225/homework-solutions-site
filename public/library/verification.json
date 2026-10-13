@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "counts": {
+    "bodies": 288,
+    "sources": 288,
+    "svgs": 8068,
+    "katex": 105798,
+    "mathml": 99,
+    "resourceLinks": 82,
+    "headingCount": 1934
+  },
+  "fontCount": 60,
+  "allMathAndSvgCountsPreserved": true,
+  "errors": []
+}
