@@ -66,6 +66,7 @@ def main():
 
     tree = defaultdict(lambda: defaultdict(dict))
     count = 0
+    pdf_failures = []
     for category_dir in sorted(SOLUTIONS.iterdir()) if SOLUTIONS.exists() else []:
         if not category_dir.is_dir():
             continue
@@ -92,6 +93,8 @@ def main():
                     html_ok = run(["pandoc", "-f", "latex", "-t", "html5", "--mathml", "-o", str(rendered), tex.name], tex.parent)
                     pdf = target.with_suffix(".pdf")
                     pdf_ok = run(["pandoc", "-f", "latex", "--pdf-engine=xelatex", "-V", "documentclass=ctexart", "-o", str(pdf), tex.name], tex.parent)
+                    if not pdf_ok:
+                        pdf_failures.append(str(tex.relative_to(ROOT)))
                     tree[category_dir.name][course_dir.name][resource_dir.name].append({
                         "title": info.get("title", tex.stem),
                         "rendered": rendered.read_text(encoding="utf-8") if html_ok else "",
@@ -114,6 +117,8 @@ def main():
         catalog.append({"name": category, "courses": courses})
     (out / "catalog.json").write_text(json.dumps(catalog, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"Built {len(catalog)} categories and {count} TeX files")
+    if pdf_failures:
+        raise SystemExit("PDF generation failed: " + ", ".join(pdf_failures))
 
 
 if __name__ == "__main__":
